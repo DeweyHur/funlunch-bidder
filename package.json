@@ -1,0 +1,28 @@
+{
+  "name": "funlunch-bidder",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^1.16.0",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
+    "express": "^4.14.0",
+    "express-session": "^1.15.0",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "jquery": "^3.1.1",
+    "json-loader": "^0.5.4",
+    "node-watch": "^0.5.5",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack -w",
+    "client": "webpack-dev-server",
+    "server": "node app.js"
+  }
+}
