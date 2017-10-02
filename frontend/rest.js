@@ -1,9 +1,7 @@
 import request from 'request-promise';
 
 function convertUri(uri) {
-  const { protocol, hostname } = window.location;
-  const host = `${protocol}//${hostname}:7777`;
-  return `${host}${uri}`;
+  return `${document.baseURI}api${uri}`;
 }
 
 export function GET(uri) {

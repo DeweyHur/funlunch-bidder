@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "bluebird": "^3.5.0",
     "body-parser": "^1.16.0",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
     "express": "^4.14.0",
     "express-session": "^1.15.0",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "mongoose": "^4.11.14",
+    "passport": "^0.4.0",
+    "passport-google-oauth": "^1.0.0"
   },
   "devDependencies": {
     "jquery": "^3.1.1",

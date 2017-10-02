@@ -5,28 +5,26 @@ import { GET, POST, PUT, DELETE } from './rest.js';
 let user;
 let roomTemplate;
 
-$('#room-template').load('../frontend/room.htm');
-$('div#content').load('../frontend/login.htm', e => {
-  $('section form').submit(e => {
-    const username = $('#username').val();
-    const password = $('#password').val();
-    POST('/login', { username, password })
-      .then((value) => {
-        user = username;
-        $('div#content').load('../frontend/lobby.htm', updateLobby);
-      })
-      .catch((err) => {
-        $('p#error').html(`${JSON.stringify(err)}`); 
-      });
-    e.preventDefault();
-  });
-});
+// $('div#content').load('templates/login.htm', e => {
+//   $('section form').submit(e => {
+//     const username = $('#username').val();
+//     const password = $('#password').val();
+//     POST('/login', { username, password })
+//       .then((value) => {
+//         user = username;
+//         $('div#content').load('templates/lobby.htm', updateLobby);
+//       })
+//       .catch((err) => {
+//         $('p#error').html(`${JSON.stringify(err)}`); 
+//       });
+//     e.preventDefault();
+//   });
+// });
 
 function updateLobby() {
   roomTemplate = $('script[data-template="room"]').text().split(/\$\{(.+?)\}/g);
   const today = new Date();
   $('#today').text(today.toLocaleDateString());
-  $('#user').text(user);
   $('#createRoom').submit(e => {
     const body = _(['name', 'description', 'maximum'])
       .map(key => [key, $(`#createRoom ${key}`)])
@@ -48,3 +46,5 @@ function updateRooms() {
       $('#rooms').html(formatRoom.join(''));
     });
 }
+
+$('div#content').load('templates/lobby.htm', updateLobby);
