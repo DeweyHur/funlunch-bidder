@@ -6,7 +6,8 @@ let session = require('express-session');
 let passport = require('passport');
 let mongoose = require('mongoose');
 let Promise = require('bluebird');
-
+let cons = require('consolidate');
+let path = require('path');
 let config = require('./config');
 let authController = require('./controllers/auth');
 let roomController = require('./controllers/room');
@@ -14,37 +15,65 @@ let roomController = require('./controllers/room');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(express.static('public'));
-app.use(passport.initialize());
 app.use(session({
   secret: 'FUNLUNCH',
   resave: false,
   saveUninitialized: true
 }));
+app.use(cookieParser());
+app.engine('html', cons.swig);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'html');
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  // app.locals.session = req.session;
+  next(null, req, res);
+});
+app.use(express.static('views'));
+app.use(passport.initialize());
 
 mongoose.Promise = Promise;
 
 let connection = `mongodb://${config.mongoose.username}:${config.mongoose.password}@cluster0-shard-00-00-gwoyf.mongodb.net:27017,cluster0-shard-00-01-gwoyf.mongodb.net:27017,cluster0-shard-00-02-gwoyf.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin`;
 console.log(`Connecting to DB.. ${connection}`);
+let db = mongoose.connection;
+db.on('error', (err) => {
+  console.log('connection error:', err);
+});
+db.once('open', (callback) => {
+  console.log('db open');
+  app.listen(7777, () => {
+    console.log('Listening from 7777...');
+  });
+});
 mongoose.connect(connection, {
   useMongoClient: true
 });
 
 let router = express.Router();
 
-app.all('*', (req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
+app.get('/', (req, res) => {
+  res.render('main', { user: _.get(req, 'session.passport.user') });
 });
-
-app.get('/auth/google', passport.authenticate('google', { scope: [ 'profile' ] }));
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/auth/google' }));
+app.get('/auth/google', authController.isAuthenticated);
+app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/' }), (req, res) => {
+  app.locals.bearer = req.user._id;
+});
 
 router.route('/room')
   .get(roomController.getRooms)
   .put(authController.isAuthenticated, roomController.putRooms)
   .delete(authController.isAuthenticated, roomController.deleteRooms);
+
+router.route('/user/me')
+  .get((req, res) => {
+    const user = _.get(req, 'session.passport.user');
+    if (user) {
+      res.send(user).status(200);
+    } else {
+      res.sendStatus(401);
+    }
+  });
 
 router.route('/room/:id')
   .all((req, res, next) => {
@@ -71,14 +100,6 @@ router.route('/room/:id')
     res.status(200).send(rooms[id]);
   });
 
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  if (password != 'funlunch') { res.sendStatus(401); return; }
-  req.session.username = username;
-  console.log(`${username} login.`);
-  res.sendStatus(200);
-});
-
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
@@ -89,6 +110,3 @@ function isLoggedIn(req, res, next) {
 
 app.use('/api', router);
 
-app.listen(7777, () => {
-  console.log('Listening from 7777...');
-});

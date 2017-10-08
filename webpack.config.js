@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = {
   entry: ['./frontend/index'],
   output: {
-    path: path.join(__dirname, 'public'),
+    path: path.join(__dirname, 'views/webpack/'),
     filename: 'bundle.js'
   },
   devtool: 'source-map',

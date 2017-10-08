@@ -3,23 +3,45 @@ let passport = require('passport');
 let GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 let config = require('../config');
 let User = require('../models/user');
+let mongoose = require('mongoose');
 
 passport.use(new GoogleStrategy(config.googleAuth,
   (accessToken, refreshToken, profile, callback) => {
-    User.findOne({ _id: profile.id })
-      .then(user => callback(null, user))
-      .catch(err => {
-        const user = new User({ _id: profile.id, name: profile.displayName });
-        user.save();
+    User.find({ gid: profile.id })
+      .then((users) => {
+        let user = users && users.length > 0 ? users[0] : null;
+        if (!user) {
+          user = new User({ 
+            _id: mongoose.Types.ObjectId(),
+            gid: profile.id,
+            name: profile.displayName, 
+            accessToken 
+          });
+          user.save()
+            .then(user => {
+              console.log('user creation success.');
+              console.dir(user);
+              callback(null, user);
+            })
+            .catch(err => { 
+              console.log('user creation fail.');
+              console.dir(err);
+              callback(err, user)
+            });
+        }
         callback(null, user);
+      })
+      .catch(err => {
+        console.dir(err);
+        callback(err);
       });
   }
 ));
 passport.serializeUser((user, done) => {
-  done(null, user._id);
+  done(null, user);
 });
-passport.deserializeUser((id, done) => {
-  User.findById(id).then(user => done(null, user));
+passport.deserializeUser((user, done) => {
+  done(null, user);
 })
 
 exports.isAuthenticated = passport.authenticate('google', { scope: [ 'profile' ] });

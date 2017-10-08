@@ -1,21 +1,29 @@
 import request from 'request-promise';
 
 function convertUri(uri) {
-  return `${document.baseURI}api${uri}`;
+  return ;
+}
+
+function generateParams(uri) {
+  const bearer = localStorage.getItem('bearer');
+  return _.assign({ 
+    uri: `${document.baseURI}api${uri}`,
+    json: true 
+  }, bearer != null ? { auth: { bearer } } : {});
 }
 
 export function GET(uri) {
-  return request({ method: 'GET', uri: convertUri(uri), json: true });
+  return request(_.assign(generateParams(uri), { method: 'GET' }));
 }
 
 export function POST(uri, body) {
-  return request({ method: 'POST', uri: convertUri(uri), body, json: true });
+  return request(_.assign(generateParams(uri), { method: 'POST', body }));
 }
 
 export function PUT(uri, body) {
-  return request({ method: 'PUT', uri: convertUri(uri), body, json: true });
+  return request(_.assign(generateParams(uri), { method: 'PUT', body }));
 }
 
 export function DELETE(uri) {
-  return request({ method: 'DELETE', uri: convertUri(uri), json: true });
+  return request(_.assign(generateParams(uri), { method: 'DELETE' }));
 }
