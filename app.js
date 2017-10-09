@@ -31,6 +31,7 @@ app.use((req, res, next) => {
 });
 app.use(express.static('views'));
 app.use(passport.initialize());
+app.use(passport.session());
 
 mongoose.Promise = Promise;
 
@@ -55,9 +56,13 @@ let router = express.Router();
 app.get('/', (req, res) => {
   res.render('main', { user: _.get(req, 'session.passport.user') });
 });
-app.get('/auth/google', authController.isAuthenticated);
+app.get('/auth/google', passport.authenticate('google', { scope: [ 'profile' ]}));
 app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/' }), (req, res) => {
   app.locals.bearer = req.user._id;
+});
+app.get('/auth/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
 });
 
 router.route('/room')
@@ -80,7 +85,7 @@ router.route('/room/:id')
     const room = rooms[req.params.id];
     if (!room) {
       res.status(400).send(`Invalid room ${id}.`);
-    } else {
+    } else { 
       next();
     }
   })

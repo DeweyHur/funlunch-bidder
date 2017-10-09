@@ -1,5 +1,7 @@
+let _ = require('lodash');
+let mongoose = require('mongoose');
 let Room = require('../models/room');
-let User = require('../models/user')
+let User = require('../models/user');
 
 exports.getRooms = (req, res) => {
   Room.find().then(rooms => {
@@ -15,11 +17,17 @@ exports.putRooms = (req, res) => {
   }
 
   const room = new Room(_.assign(_.pick(req.body, ['name', 'description', 'maximum']), {
-    creator: req.user._id,
+    _id: mongoose.Types.ObjectId(),
+    createdBy: req.user._id,
     members: []
   }));
-  room.save();
-  res.status(200).send(room);
+  room.save()
+    .then(room => {
+      res.status(200).send(room);    
+    }).catch(err => {
+      res.sendStatus(400);
+    })
+  
 }
 
 exports.deleteRooms = (req, res) => {

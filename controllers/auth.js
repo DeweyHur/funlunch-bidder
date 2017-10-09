@@ -1,9 +1,9 @@
 // Load required packages
 let passport = require('passport');
 let GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+let mongoose = require('mongoose');
 let config = require('../config');
 let User = require('../models/user');
-let mongoose = require('mongoose');
 
 passport.use(new GoogleStrategy(config.googleAuth,
   (accessToken, refreshToken, profile, callback) => {
@@ -44,4 +44,10 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 })
 
-exports.isAuthenticated = passport.authenticate('google', { scope: [ 'profile' ] });
+exports.isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.sendStatus(401);
+  }
+}
