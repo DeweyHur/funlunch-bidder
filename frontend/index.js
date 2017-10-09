@@ -34,11 +34,10 @@ function updateLobby() {
 function updateRooms() {
   REST('GET', '/room')
     .then(rooms => {
-      const formatRoom = _.map(rooms, (room, id) => {
+      $('#rooms').html(_.map(rooms, (room, id) => {
         const params = _.defaults({ id, members: room.members.join(',') }, room);
         return roomTemplate.map((item, index) => (index % 2) ? params[item] : item).join('');
-      }) || [];
-      $('#rooms').html(formatRoom.join(''));
+      }));
     });
 }
   

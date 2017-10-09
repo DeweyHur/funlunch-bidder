@@ -2,8 +2,8 @@
   <tr id="${id}">
     <td class="name">${name}</td>
     <td class="maximum">${maximum}P</td> 
-    <td class="creator">Owner: ${creator}</td> 
-    <td class="members">Party: ${members}</td>
+    <td class="createdBy">${createdBy}</td> 
+    <td class="members">${members}</td>
   </tr>
   <tr>
     <td class="description" cols="4">${description}</td>
@@ -15,5 +15,13 @@
   <div id="you"></div>
   <div id="operation"></div>
   <h2>Availble Rooms</h2>
-  <table id="rooms" />
+  <table>
+    <thead>
+      <th>Game</th>
+      <th>Maximum Players</th>
+      <th>Created By</th>
+      <th>Players</th>
+    </thead>
+    <tbody id="rooms" />
+  </table>
 </section>
