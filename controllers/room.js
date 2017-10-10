@@ -5,7 +5,25 @@ let User = require('../models/user');
 
 exports.getRooms = (req, res) => {
   Room.find().then(rooms => {
-    res.status(200).send(rooms);  
+    const ids = _(rooms)
+      .map(room => [ room.createdBy, ...room.members ])
+      .flatten()
+      .uniq()
+      .value();
+    const query = { '_id': { $in: ids } };
+    User.find(query)
+      .then(docs => {
+        const users = _(ids).map((id, index) => [id, docs[index]]).fromPairs().value();
+        const body = _.mapValues(rooms, room => _.defaults({
+          createdBy: users[room.createdBy].name,
+          members: _.map(room.members, user => user.name)
+        }, _.pick(room, ['name', 'description', 'maximum'])));
+        res.status(200).send(body);
+      })
+      .catch(err => {
+        console.error('db error', ids, query);
+        res.sendStatus(500);
+      });
   });
 }
 
