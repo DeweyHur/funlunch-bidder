@@ -3,7 +3,7 @@ import $ from 'jquery';
 import { REST } from './rest.js';
 
 let roomTemplate;
-let user;
+let user = {};
 
 function updateRoomOperation() {
   $('#createRoom').submit(e => {
@@ -32,12 +32,36 @@ function updateLobby() {
 }
 
 function updateRooms() {
+  console.log('updateRoom');
   REST('GET', '/room')
     .then(rooms => {
-      $('#rooms').html(_.map(rooms, (room, id) => {
-        const params = _.defaults({ id, members: room.members.join(',') }, room);
+      $('#rooms').html(_.map(rooms, (room) => {
+        const params = _.defaults({ 
+          createdBy: room.createdBy.name,
+          idCreatedBy: room.createdBy.id,
+          members: _.map(room.members, user => user.name).join(',') 
+        }, room);
         return roomTemplate.map((item, index) => (index % 2) ? params[item] : item).join('');
       }));
+      _.forEach(rooms, room => {
+        if (room.createdBy.id === user._id) {
+          $(`#rooms #${room.id} .operation`).html(`
+            <button class="withdraw">Withdraw!</button>
+          `);
+          $(`#rooms #${room.id} .operation .withdraw`).on('click', e => {
+            if (confirm(`Are you want to withdraw hosting ${room.name}?`)) {
+              REST('DELETE', `/room/${room.id}`)
+                .then(() => {
+                  console.log(`deletion ${room.id} success. update rooms.`)
+                  updateRooms();
+                  return null;
+                })
+                .catch(err => console.dir(err));
+            }
+          });
+        }
+      });
+      return rooms;
     });
 }
   

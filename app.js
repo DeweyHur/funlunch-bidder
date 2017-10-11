@@ -81,37 +81,32 @@ router.route('/user/me')
   });
 
 router.route('/room/:id')
-  .all((req, res, next) => {
-    const room = rooms[req.params.id];
-    if (!room) {
-      res.status(400).send(`Invalid room ${id}.`);
-    } else { 
-      next();
-    }
-  })
-  .get((req, res) => {
-    const id = req.params.id;
-    res.status(200).send(rooms[id]);
-  })
-  .put(isLoggedIn, (req, res) => {
-    const id = req.params.id;
-    _.forIn(rooms, (room, id) => rooms[id].members = _.remove(room.members, req.session.username));
-    rooms[id].members.push(req.session.username);
-    res.status(200).send(rooms[id]);
-  })
-  .delete(isLoggedIn, (req, res) => {
-    const id = req.params.id;
-    rooms[id].members = _.remove(rooms[id].members, req.session.username);
-    res.status(200).send(rooms[id]);
-  });
+  .delete(authController.isAuthenticated, roomController.deleteRoom);
 
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  } else {
-    res.sendStatus(401);
-  }
-}
+// router.route('/room/:id')
+//   .all((req, res, next) => {
+//     const room = rooms[req.params.id];
+//     if (!room) {
+//       res.status(400).send(`Invalid room ${id}.`);
+//     } else { 
+//       next();
+//     }
+//   })
+//   .get((req, res) => {
+//     const id = req.params.id;
+//     res.status(200).send(rooms[id]);
+//   })
+//   .put(isLoggedIn, (req, res) => {
+//     const id = req.params.id;
+//     _.forIn(rooms, (room, id) => rooms[id].members = _.remove(room.members, req.session.username));
+//     rooms[id].members.push(req.session.username);
+//     res.status(200).send(rooms[id]);
+//   })
+//   .delete(isLoggedIn, (req, res) => {
+//     const id = req.params.id;
+//     rooms[id].members = _.remove(rooms[id].members, req.session.username);
+//     res.status(200).send(rooms[id]);
+//   });
 
 app.use('/api', router);
 
