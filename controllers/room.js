@@ -7,12 +7,16 @@ function serializeUser(user) {
   return { id: user._id.toString(), name: user.name };
 }
 
+function isIdEqual(lhs, rhs) {
+  return lhs.equals(rhs);
+}
+
 exports.getRooms = (req, res) => {
   Room.find().lean().then(rooms => {
     const ids = _(rooms)
       .map(room => [ room.createdBy, ...room.members ])
       .flatten()
-      .uniqWith((lhs, rhs) => lhs.equals(lhs))
+      .uniqWith(isIdEqual)
       .value();
     const query = { '_id': { $in: ids } };
     User.find(query).lean()
@@ -32,7 +36,7 @@ exports.getRooms = (req, res) => {
   });
 }
 
-exports.putRooms = (req, res) => {
+exports.createRoom = (req, res) => {
   const { name, description, maximum } = req.body;
   if (!name || !description || maximum < 2) {
     res.status(400).send(`Some fields are missing or invalid. ${JSON.stringify(req.body)}`);
@@ -53,7 +57,7 @@ exports.putRooms = (req, res) => {
   
 }
 
-exports.deleteRooms = (req, res) => {
+exports.kickAllMembers = (req, res) => {
   Room.find().update({ members: [] })
     .then(result => {
       console.log('delete rooms success', result.result);
@@ -64,18 +68,64 @@ exports.deleteRooms = (req, res) => {
 }
 
 exports.deleteRoom = (req, res) => {
-  const id = req.params.id;
-  if (id) {
-    Room.find({ _id: mongoose.Types.ObjectId(id), createdBy: req.user._id }).remove()
+  const roomid = _.get(req, 'params.roomid');
+  const userid = _.get(req, 'user._id')  
+  if (roomid && userid) {
+    Room.find({ _id: mongoose.Types.ObjectId(roomid), createdBy: userid }).remove()
       .then(result => {
         console.log('delete room success', result.result);
         res.sendStatus(200);
       })
       .catch(err => {
-        console.error('delete room db error', err, id);
+        console.error('delete room db error', err, roomid);
         res.sendStatus(401);
       });
   } else {
+    console.error('bad request', roomid, userid);
+    res.sendStatus(400);
+  }
+}
+
+exports.enterRoom = (req, res) => {
+  const roomid = _.get(req, 'params.roomid');
+  const userid = _.get(req, 'user._id')
+  if (roomid && userid) {
+    Room.find({ members: userid }).remove()
+      .then(result => {
+        console.log('quit from room', result.result);
+      })
+      .finally(() => {
+        Room.findById(roomid).update({ members: [] })
+          .then(result => {
+            console.log('enter to room', result.result);
+            res.sendStatus(200);
+          })
+          .catch(err => {
+            console.error('enter room db error', err, roomid);
+            res.sendStatus(500);
+          })
+      });
+  } else {
+    console.error('bad request', roomid, userid);
+    res.sendSatus(400);
+  }
+}
+
+exports.leaveRoom = (req, res) => {
+  const roomid = _.get(req, 'params.roomid');
+  const userid = _.get(req, 'user._id')
+  if (roomid && userid) {
+    Room.findById(roomid)
+      .then(room => {
+        room.members = _.uniqWith([ ...room.members, userid ], isIdEqual)
+        room.save()
+          .then(() => res.sendStatus(200))
+          .catch(err => {
+            console.error('leave room error', err, roomid, userid);
+          })
+      });
+  } else {
+    console.error('bad request', roomid, userid);
     res.sendStatus(400);
   }
 }

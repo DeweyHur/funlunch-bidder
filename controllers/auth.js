@@ -44,6 +44,13 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 })
 
+exports.googleAuth = passport.authenticate('google', { scope: [ 'profile' ]});
+exports.googleAuthCallback = passport.authenticate('google', { successRedirect: '/' });
+exports.logout = (req, res) => {
+  req.logout();
+  res.redirect('/');
+};
+
 exports.isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
