@@ -3,12 +3,12 @@ let mongoose = require('mongoose');
 
 // Define our user schema
 let RoomSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
+  _id: String,
   name: String,
   description: String,
   maximum: Number,
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  createdBy: { type: String, ref: 'User' },
+  members: [{ type: String, ref: 'User' }]
 });
 
 // Export the Mongoose model

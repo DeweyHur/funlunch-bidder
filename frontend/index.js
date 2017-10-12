@@ -2,8 +2,37 @@
 import $ from 'jquery';
 import { REST } from './rest.js';
 
-let roomTemplate;
-let user = {};
+let templates;
+let me = {};
+let roomOperations = {
+  withdraw: (room) => {
+    if (confirm(`Are you want to withdraw hosting ${room.name}?`)) {
+    REST('DELETE', `/room/${room.id}`)
+      .then(() => {
+        console.log(`deletion ${room.id} success. update rooms.`);
+        updateRooms();
+        return null;
+      })
+      .catch(err => console.dir(err));
+    }
+  },
+  enter: (room) => {
+    REST('PUT', `/room/${room.id}`)
+      .then(() => {
+        console.log(`succeed to enter into ${room.name}.`);
+        updateRooms();
+        return null;
+      })
+  },
+  leave: (room) => {
+    REST('DELETE', `/room/${room.id}/me`)
+      .then(() => {
+        console.log('succeed to leave from ${room.name}');
+        updateRooms();
+        return null;
+      })
+  }
+}
 
 function updateRoomOperation() {
   $('#createRoom').submit(e => {
@@ -15,15 +44,20 @@ function updateRoomOperation() {
 }
 
 function updateLobby() {
-  roomTemplate = $('script[data-template="room"]').text().split(/\$\{(.+?)\}/g);
+  templates = {
+    room: $('script[data-template="room"]').text().split(/\$\{(.+?)\}/g)
+  };
+  ['withdraw','enter','leave'].forEach(key => {
+    templates[key] = $(`script[data-template="${key}"`).text();
+  });
   const today = new Date();
   $('#today').text(today.toLocaleDateString());
   REST('GET', '/user/me')
     .then(ret => {
-      user = ret;
+      me = ret;
       localStorage.setItem('funlunch-user', JSON.stringify(ret));
       localStorage.setItem('funlunch-bearer', JSON.stringify(ret.accessToken));
-      $('#you').html(`${user.name} <a href='/auth/logout'>logout</a>`);
+      $('#you').html(`${me.name} <a href='/auth/logout'>logout</a>`);
       $('#operation').load('templates/roomOperations.htm', updateRoomOperation);
     })
     .catch(err => $('#operation').load('templates/login.htm'));
@@ -41,26 +75,21 @@ function updateRooms() {
           idCreatedBy: room.createdBy.id,
           members: _.map(room.members, user => user.name).join(',') 
         }, room);
-        return roomTemplate.map((item, index) => (index % 2) ? params[item] : item).join('');
+        return templates.room.map((item, index) => (index % 2) ? params[item] : item).join('');
       }));
-      _.forEach(rooms, room => {
-        if (room.createdBy.id === user._id) {
-          $(`#rooms #${room.id} .operation`).html(`
-            <button class="withdraw">Withdraw!</button>
-          `);
-          $(`#rooms #${room.id} .operation .withdraw`).on('click', e => {
-            if (confirm(`Are you want to withdraw hosting ${room.name}?`)) {
-              REST('DELETE', `/room/${room.id}`)
-                .then(() => {
-                  console.log(`deletion ${room.id} success. update rooms.`)
-                  updateRooms();
-                  return null;
-                })
-                .catch(err => console.dir(err));
-            }
+      if (!_.isEmpty(me)) {
+        _.forEach(rooms, room => {
+          const operators = [];
+          if (room.createdBy.id === me._id) operators.push('withdraw');
+          if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
+          else operators.push('leave');
+
+          $(`#rooms #${room.id} .operation`).html(operators.map(key => templates[key]).join('\n'));
+          _.forEach(operators, key => {
+            $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
           });
-        }
-      });
+        });
+      }
       return rooms;
     });
 }

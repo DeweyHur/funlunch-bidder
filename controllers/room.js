@@ -4,11 +4,7 @@ let Room = require('../models/room');
 let User = require('../models/user');
 
 function serializeUser(user) {
-  return { id: user._id.toString(), name: user.name };
-}
-
-function isIdEqual(lhs, rhs) {
-  return lhs.equals(rhs);
+  return { id: user._id, name: user.name };
 }
 
 exports.getRooms = (req, res) => {
@@ -16,7 +12,7 @@ exports.getRooms = (req, res) => {
     const ids = _(rooms)
       .map(room => [ room.createdBy, ...room.members ])
       .flatten()
-      .uniqWith(isIdEqual)
+      .uniq()
       .value();
     const query = { '_id': { $in: ids } };
     User.find(query).lean()
@@ -25,7 +21,7 @@ exports.getRooms = (req, res) => {
         const body = _.mapValues(rooms, room => _.defaults({
           id: room._id.toString(),
           createdBy: serializeUser(users[room.createdBy]),
-          members: _.map(room.members, serializeUser)
+          members: _.map(room.members, id => serializeUser(users[id]))
         }, _.pick(room, ['name', 'description', 'maximum'])));
         res.status(200).send(body);
       })
@@ -44,7 +40,7 @@ exports.createRoom = (req, res) => {
   }
 
   const room = new Room(_.assign(_.pick(req.body, ['name', 'description', 'maximum']), {
-    _id: mongoose.Types.ObjectId(),
+    _id: mongoose.Types.ObjectId().toString(),
     createdBy: req.user._id,
     members: []
   }));
@@ -52,6 +48,7 @@ exports.createRoom = (req, res) => {
     .then(room => {
       res.status(200).send(room);    
     }).catch(err => {
+      console.error('create room fail', err, room);
       res.sendStatus(400);
     })
   
@@ -71,14 +68,14 @@ exports.deleteRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
   const userid = _.get(req, 'user._id')  
   if (roomid && userid) {
-    Room.find({ _id: mongoose.Types.ObjectId(roomid), createdBy: userid }).remove()
+    Room.findOne({ _id: roomid, createdBy: userid }).remove()
       .then(result => {
         console.log('delete room success', result.result);
-        res.sendStatus(200);
+        return res.sendStatus(200);
       })
       .catch(err => {
         console.error('delete room db error', err, roomid);
-        res.sendStatus(401);
+        return res.sendStatus(401);
       });
   } else {
     console.error('bad request', roomid, userid);
@@ -90,20 +87,26 @@ exports.enterRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
   const userid = _.get(req, 'user._id')
   if (roomid && userid) {
-    Room.find({ members: userid }).remove()
-      .then(result => {
-        console.log('quit from room', result.result);
-      })
+    Room.findOne({ members: userid }).remove()
+      .then(result => console.log('quit from room', result.result))
       .finally(() => {
-        Room.findById(roomid).update({ members: [] })
-          .then(result => {
-            console.log('enter to room', result.result);
-            res.sendStatus(200);
+        return Room.findOne({ _id: roomid })
+          .then(room => {
+            if (room) {
+              room.members = [...room.members, userid];
+              room.save().then(result => {
+                console.log('enter to room', result.result);
+                return res.sendStatus(200);
+              }) 
+            } else {
+              console.error('room doesnt exist', err, roomid, userid);
+              return res.sendStatus(500);
+            }
           })
           .catch(err => {
-            console.error('enter room db error', err, roomid);
-            res.sendStatus(500);
-          })
+            console.error('enter room db error', err, roomid, userid);
+            return res.sendStatus(500);
+          });
       });
   } else {
     console.error('bad request', roomid, userid);
@@ -115,14 +118,20 @@ exports.leaveRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
   const userid = _.get(req, 'user._id')
   if (roomid && userid) {
-    Room.findById(roomid)
+    Room.findOne({ _id: roomid })
       .then(room => {
-        room.members = _.uniqWith([ ...room.members, userid ], isIdEqual)
-        room.save()
-          .then(() => res.sendStatus(200))
-          .catch(err => {
-            console.error('leave room error', err, roomid, userid);
-          })
+        if (room) {
+          room.members = _.without(room.members, userid);
+          room.save()
+            .then(room => {
+              console.log('succeeded to leave room', room);
+              return res.sendStatus(200);
+            })
+            .catch(err => {
+              console.error('leave room error', err, roomid, userid);
+              return res.sendStatus(500);
+            });
+        }
       });
   } else {
     console.error('bad request', roomid, userid);

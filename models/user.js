@@ -3,7 +3,7 @@ let mongoose = require('mongoose');
 
 // Define our user schema
 let UserSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
+  _id: String,
   gid: String,
   name: String,
   accessToken: String
