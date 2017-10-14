@@ -3,7 +3,7 @@ let mongoose = require('mongoose');
 
 // Define our user schema
 let RoomSchema = new mongoose.Schema({
-  _id: String,
+  _id: { type: String, index: true },
   name: String,
   description: String,
   maximum: Number,

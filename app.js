@@ -59,6 +59,8 @@ app.get('/', (req, res) => {
 
 app.get('/auth/google', authController.googleAuth);
 app.get('/auth/google/callback',authController.googleAuthCallback);
+app.get('/auth/facebook', authController.facebookAuth);
+app.get('/auth/facebook/callback',authController.facebookAuthCallback);
 app.get('/auth/logout', authController.logout);
 
 router.route('/room')

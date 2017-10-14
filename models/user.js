@@ -4,9 +4,7 @@ let mongoose = require('mongoose');
 // Define our user schema
 let UserSchema = new mongoose.Schema({
   _id: String,
-  gid: String,
-  name: String,
-  accessToken: String
+  name: String
 });
 
 // Export the Mongoose model
