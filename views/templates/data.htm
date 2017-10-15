@@ -1,0 +1,52 @@
+<!-- User Info -->
+<script type="text/template" data-template="userinfo">
+  <div id="userinfo">
+    Logged in as ${name} 
+    <a href="/auth/logout">
+      <img id="logout" width="70px" src="https://kikloginonline-techmakaillc.netdna-ssl.com/wp-content/uploads/2014/09/kik-sign-out-.jpg" alt="logout" />
+    </a>
+  </div>
+</script>
+
+<!-- Room -->
+<script type="text/template" data-template="room">
+  <tr id="${id}">
+    <td class="name">${name}</td>
+    <td class="maximum">${maximum}P</td> 
+    <td class="createdBy" value="${idCreatedBy}">${createdBy}</td> 
+    <td class="members">${members}</td>
+    <td class="operation">
+    </td>
+  </tr>
+  <tr>
+    <td class="description" colspan="5">${description}</td>
+  </tr>
+</script>
+
+<!-- Room Operations -->
+<script type="text/template" data-template="operations">
+  <div id="creation">
+    <table>
+      <tr>
+        <th>Create a room</th>
+        <td>
+          <form id="createRoom">
+            <div class="submission">
+              <input id="submit" type="submit" value="create" />
+            </div>
+            <div>
+              <label>Game Name</label><input id="name" type="text" placeholder="7 Wonders" />
+            </div>
+            <div>
+              <label>Maximum participants</label><input id="maximum" type="input" value="4" min="2" max="12" step="1" />
+            </div>
+            <div>
+              <label>Description</label><input id="description" type="text" placeholder="7 Wonders with expansion Leaders if applicable" />
+            </div>
+          </form>
+        </td>
+        <td>
+      </tr>
+    </table>
+  </div>
+</script>

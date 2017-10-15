@@ -1,0 +1,61 @@
+* {
+  font-family: 'Avenir';
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  border: 1px solid #ddd;
+}
+td {
+  border: 1px solid #ddd;
+}
+
+#menu {
+  font-size: 2.0em;
+  text-align: center;
+  border-bottom: 1px dashed #ddd;
+}
+#you {
+  font-size: 0.8em;
+  float: right;
+}
+#logout {
+  vertical-align: middle;
+}
+#gamerooms {
+  margin-top: 20px;
+  width: 100%;
+}
+#gamerooms table th {
+  background-color: #4CAF50;
+}
+#gamerooms table td {
+  border: 1px solid #ddd;
+}
+#gamerooms table td.maximum {
+  text-align: center;
+}
+#gamerooms table td.createdBy {
+  text-align: center;
+}
+#gamerooms table td.description {
+  background-color: #f2f2f2;
+  font-size: 0.8em;
+}
+#creation {
+  border: 1px solid #ddd;
+}
+#creation label {
+  font-size: 0.8em;
+}
+#creation input {
+  width: 60%;
+}
+#creation .submission {
+  float: right;
+  min-width: 100px;
+  height: 100%;
+  vertical-align: middle;
+}

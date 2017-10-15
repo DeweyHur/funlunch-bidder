@@ -2,7 +2,7 @@
 import $ from 'jquery';
 import { REST } from './rest.js';
 
-let templates;
+let templates = {};
 let me = {};
 let roomOperations = {
   withdraw: (room) => {
@@ -34,7 +34,13 @@ let roomOperations = {
   }
 }
 
+function templateToHTML(key, params) {
+  return templates[key].map((item, index) => (index % 2) ? params[item] : item).join('');
+
+}
+
 function updateRoomOperation() {
+  $('#operation').html(templateToHTML('operations'));
   $('#createRoom').submit(e => {
     const body = _.fromPairs(_.map(e.target, item => [item.id, item.value]));
     console.dir(body);
@@ -44,9 +50,6 @@ function updateRoomOperation() {
 }
 
 function updateLobby() {
-  templates = {
-    room: $('script[data-template="room"]').text().split(/\$\{(.+?)\}/g)
-  };
   ['withdraw','enter','leave'].forEach(key => {
     templates[key] = $(`script[data-template="${key}"`).text();
   });
@@ -57,8 +60,8 @@ function updateLobby() {
       me = ret;
       localStorage.setItem('funlunch-user', JSON.stringify(ret));
       localStorage.setItem('funlunch-bearer', JSON.stringify(ret.accessToken));
-      $('#you').html(`${me.name} <a href='/auth/logout'>logout</a>`);
-      $('#operation').load('templates/roomOperations.htm', updateRoomOperation);
+      $('#you').html(templateToHTML('userinfo', { name: me.name }));
+      updateRoomOperation();
     })
     .catch(err => $('#operation').load('templates/login.htm'));
 
@@ -69,29 +72,34 @@ function updateRooms() {
   console.log('updateRoom');
   REST('GET', '/room')
     .then(rooms => {
-      $('#rooms').html(_.map(rooms, (room) => {
-        const params = _.defaults({ 
-          createdBy: room.createdBy.name,
-          idCreatedBy: room.createdBy.id,
-          members: _.map(room.members, user => user.name).join(',') 
-        }, room);
-        return templates.room.map((item, index) => (index % 2) ? params[item] : item).join('');
-      }));
+      $('#rooms').html(_.map(rooms, (room) => templateToHTML('room', _.defaults({ 
+        createdBy: room.createdBy.name,
+        idCreatedBy: room.createdBy.id,
+        members: _.map(room.members, user => user.name).join(',') 
+      }, room))));
       if (!_.isEmpty(me)) {
-        _.forEach(rooms, room => {
-          const operators = [];
-          if (room.createdBy.id === me._id) operators.push('withdraw');
-          if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
-          else operators.push('leave');
+        _(rooms)
+          .sortBy(room => room.members.length)
+          .forEach(room => {
+            const operators = [];
+            if (room.createdBy.id === me._id) operators.push('withdraw');
+            if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
+            else operators.push('leave');
 
-          $(`#rooms #${room.id} .operation`).html(operators.map(key => templates[key]).join('\n'));
-          _.forEach(operators, key => {
-            $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
+            $(`#rooms #${room.id} .operation`).html(operators.map(key => templates[key]).join('\n'));
+            _.forEach(operators, key => {
+              $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
+            });
           });
-        });
       }
       return rooms;
     });
 }
-  
-$('div#content').load('templates/lobby.htm', updateLobby);
+
+$('#dataTemplate').load('templates/data.htm', () => {
+  _.forEach(['operations', 'userinfo', 'room'], key => {
+    const format = $(`script[data-template="${key}"]`).text();
+    templates[key] = format.split(/\$\{(.+?)\}/g);
+  });
+  $('#content').load('templates/lobby.htm', updateLobby);
+});
