@@ -27,26 +27,35 @@
 <script type="text/template" data-template="operations">
   <div id="creation">
     <table>
-      <tr>
-        <th>Create a room</th>
-        <td>
-          <form id="createRoom">
-            <div class="submission">
-              <input id="submit" type="submit" value="create" />
-            </div>
-            <div>
-              <label>Game Name</label><input id="name" type="text" placeholder="7 Wonders" />
-            </div>
-            <div>
-              <label>Maximum participants</label><input id="maximum" type="input" value="4" min="2" max="12" step="1" />
-            </div>
-            <div>
-              <label>Description</label><input id="description" type="text" placeholder="7 Wonders with expansion Leaders if applicable" />
-            </div>
-          </form>
-        </td>
-        <td>
-      </tr>
+      <form id="createRoom">
+        <tr>
+          <th rowspan="3">Create a room</th>
+          <td class="field">Game Name</td>
+          <td><input id="name" type="text" placeholder="7 Wonders" /></td>
+          <td rowspan="2"><input type="submit" id="submission" value="Host this game!" /></td>
+        </tr>
+        <tr>
+          <td class="field">Maximum participants</td>
+          <td><input id="maximum" type="input" value="4" min="2" max="12" step="1" /></td>
+        </tr>
+        <tr>
+          <td class="field">Description</td>
+          <td colspan="2"><input id="description" type="text" placeholder="7 Wonders with expansion Leaders if applicable" /></td>
+        </tr>
+      </form>
     </table>
   </div>
+</script>
+
+<!-- Room Buttons -->
+<script type="text/template" data-template="withdraw">
+  <button class="withdraw">Withdraw!!</button>
+</script>
+
+<script type="text/template" data-template="enter">
+  <button class="enter">Enter</button>
+</script>
+
+<script type="text/template" data-template="leave">
+  <button class="leave">Leave</button>
 </script>

@@ -11,6 +11,11 @@ th {
 td {
   border: 1px solid #ddd;
 }
+h2 {
+  font-size: 1.5em;
+  text-align: center;
+  font-weight: normal;
+}
 
 #menu {
   font-size: 2.0em;
@@ -24,6 +29,16 @@ td {
 #logout {
   vertical-align: middle;
 }
+.withdraw {
+  background-color: #C52;
+}
+.enter {
+  background-color: #4CAF50;
+}
+.leave {
+  background-color: #C52;
+}
+
 #gamerooms {
   margin-top: 20px;
   width: 100%;
@@ -34,28 +49,44 @@ td {
 #gamerooms table td {
   border: 1px solid #ddd;
 }
-#gamerooms table td.maximum {
+#gamerooms table .name {
   text-align: center;
 }
-#gamerooms table td.createdBy {
+#gamerooms table .maximum {
   text-align: center;
 }
-#gamerooms table td.description {
+#gamerooms table .createdBy {
+  text-align: center;
+}
+#gamerooms table .members {
+  font-size: 0.7em;
+}
+#gamerooms table .description {
   background-color: #f2f2f2;
   font-size: 0.8em;
+  color: #777;
 }
+
 #creation {
   border: 1px solid #ddd;
 }
-#creation label {
+#creation .field {
   font-size: 0.8em;
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
 }
 #creation input {
-  width: 60%;
+  box-sizing: border-box;
+  width: 100%;
 }
-#creation .submission {
-  float: right;
-  min-width: 100px;
-  height: 100%;
-  vertical-align: middle;
+#creation #submission {
+  border: none;
+  height: 52px;
+}
+footer {
+  margin-top: 5px;
+  border-top: 1px dotted #ddd;
+  font-size: 0.6em;
+  text-align: right;
 }

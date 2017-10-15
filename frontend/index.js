@@ -50,9 +50,6 @@ function updateRoomOperation() {
 }
 
 function updateLobby() {
-  ['withdraw','enter','leave'].forEach(key => {
-    templates[key] = $(`script[data-template="${key}"`).text();
-  });
   const today = new Date();
   $('#today').text(today.toLocaleDateString());
   REST('GET', '/user/me')
@@ -82,11 +79,12 @@ function updateRooms() {
           .sortBy(room => room.members.length)
           .forEach(room => {
             const operators = [];
-            if (room.createdBy.id === me._id) operators.push('withdraw');
             if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
             else operators.push('leave');
+            if (room.createdBy.id === me._id) operators.push('withdraw');
 
-            $(`#rooms #${room.id} .operation`).html(operators.map(key => templates[key]).join('\n'));
+            const htmlOps = operators.map(templateToHTML).join('\n');
+            $(`#rooms #${room.id} .operation`).html(htmlOps);
             _.forEach(operators, key => {
               $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
             });
@@ -97,7 +95,7 @@ function updateRooms() {
 }
 
 $('#dataTemplate').load('templates/data.htm', () => {
-  _.forEach(['operations', 'userinfo', 'room'], key => {
+  _.forEach(['operations', 'userinfo', 'room','withdraw','enter','leave'], key => {
     const format = $(`script[data-template="${key}"]`).text();
     templates[key] = format.split(/\$\{(.+?)\}/g);
   });
