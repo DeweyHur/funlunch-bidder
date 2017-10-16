@@ -8,6 +8,7 @@ let mongoose = require('mongoose');
 let Promise = require('bluebird');
 let cons = require('consolidate');
 let path = require('path');
+let util = require('util');
 let config = require('./config');
 let authController = require('./controllers/auth');
 let roomController = require('./controllers/room');
@@ -26,7 +27,7 @@ app.engine('html', cons.swig);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'html');
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`${req.method} ${req.url} ${util.inspect(req.body, { colors: true }).replace(/\n/g, '')}`);
   next(null, req, res);
 });
 app.use(express.static('views'));

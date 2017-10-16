@@ -1,37 +1,18 @@
 ﻿import _ from 'lodash';
 import $ from 'jquery';
-import { REST } from './rest.js';
+import * as ROOM from './controllers/room.js';
+import * as USER from './controllers/user.js';
 
 let templates = {};
 let me = {};
 let roomOperations = {
   withdraw: (room) => {
     if (confirm(`Are you want to withdraw hosting ${room.name}?`)) {
-    REST('DELETE', `/room/${room.id}`)
-      .then(() => {
-        console.log(`deletion ${room.id} success. update rooms.`);
-        updateRooms();
-        return null;
-      })
-      .catch(err => console.dir(err));
+      ROOM.withdraw(room).then(updateRooms);
     }
   },
-  enter: (room) => {
-    REST('PUT', `/room/${room.id}`)
-      .then(() => {
-        console.log(`succeed to enter into ${room.name}.`);
-        updateRooms();
-        return null;
-      })
-  },
-  leave: (room) => {
-    REST('DELETE', `/room/${room.id}/me`)
-      .then(() => {
-        console.log('succeed to leave from ${room.name}');
-        updateRooms();
-        return null;
-      })
-  }
+  enter: (room) => ROOM.enter(room).then(updateRooms),
+  leave: (room) => ROOM.leave(room).then(updateRooms),
 }
 
 function templateToHTML(key, params) {
@@ -42,9 +23,13 @@ function templateToHTML(key, params) {
 function updateRoomOperation() {
   $('#operation').html(templateToHTML('operations'));
   $('#createRoom').submit(e => {
-    const body = _.fromPairs(_.map(e.target, item => [item.id, item.value]));
-    console.dir(body);
-    REST('PUT', '/room', body).then(updateRooms);
+    const body = _(e.target)
+      .map(item => [item.id, item.value])
+      .fromPairs()
+      .omit(['submission'])
+      .value(); 
+    if (confirm(`Do you want to host ${body.name} with up to ${body.maximum} players?`))
+      ROOM.host(body).then(updateRooms);
     e.preventDefault();
   });
 }
@@ -52,22 +37,18 @@ function updateRoomOperation() {
 function updateLobby() {
   const today = new Date();
   $('#today').text(today.toLocaleDateString());
-  REST('GET', '/user/me')
+  USER.findMe()
     .then(ret => {
       me = ret;
-      localStorage.setItem('funlunch-user', JSON.stringify(ret));
-      localStorage.setItem('funlunch-bearer', JSON.stringify(ret.accessToken));
-      $('#you').html(templateToHTML('userinfo', { name: me.name }));
+      $('#you').html(templateToHTML('userinfo', { name: ret.name }));
       updateRoomOperation();
     })
     .catch(err => $('#operation').load('templates/login.htm'));
-
   updateRooms();
 }
 
 function updateRooms() {
-  console.log('updateRoom');
-  REST('GET', '/room')
+  ROOM.find()
     .then(rooms => {
       $('#rooms').html(_.map(rooms, (room) => templateToHTML('room', _.defaults({ 
         createdBy: room.createdBy.name,

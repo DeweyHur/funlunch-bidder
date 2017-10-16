@@ -33,8 +33,8 @@ exports.getRooms = (req, res) => {
 }
 
 exports.createRoom = (req, res) => {
-  const { name, description, maximum } = req.body;
-  if (!name || !description || maximum < 2) {
+  const { name, description = '', maximum } = req.body;
+  if (!name || maximum < 2) {
     res.status(400).send(`Some fields are missing or invalid. ${JSON.stringify(req.body)}`);
     return;
   }
@@ -70,7 +70,7 @@ exports.deleteRoom = (req, res) => {
   if (roomid && userid) {
     Room.findOne({ _id: roomid, createdBy: userid }).remove()
       .then(result => {
-        console.log('delete room success', result.result);
+        console.log(`delete room ${roomid} success`);
         return res.sendStatus(200);
       })
       .catch(err => {
@@ -87,27 +87,10 @@ exports.enterRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
   const userid = _.get(req, 'user._id')
   if (roomid && userid) {
-    Room.findOne({ members: userid }).remove()
-      .then(result => console.log('quit from room', result.result))
-      .finally(() => {
-        return Room.findOne({ _id: roomid })
-          .then(room => {
-            if (room) {
-              room.members = [...room.members, userid];
-              room.save().then(result => {
-                console.log('enter to room', result.result);
-                return res.sendStatus(200);
-              }) 
-            } else {
-              console.error('room doesnt exist', err, roomid, userid);
-              return res.sendStatus(500);
-            }
-          })
-          .catch(err => {
-            console.error('enter room db error', err, roomid, userid);
-            return res.sendStatus(500);
-          });
-      });
+    leaveRoomIfEntered(userid)
+      .then(() => enterRoomImpl(roomid, userid)) 
+      .then(() => res.sendStatus(200))
+      .catch(err => res.sendStatus(500));
   } else {
     console.error('bad request', roomid, userid);
     res.sendSatus(400);
@@ -118,23 +101,55 @@ exports.leaveRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
   const userid = _.get(req, 'user._id')
   if (roomid && userid) {
-    Room.findOne({ _id: roomid })
-      .then(room => {
-        if (room) {
-          room.members = _.without(room.members, userid);
-          room.save()
-            .then(room => {
-              console.log('succeeded to leave room', room);
-              return res.sendStatus(200);
-            })
-            .catch(err => {
-              console.error('leave room error', err, roomid, userid);
-              return res.sendStatus(500);
-            });
-        }
-      });
+    leaveRoomImpl(roomid, userid)
+      .then(room => res.sendStatus(200))
+      .catch(err => res.sendStatus(500));
   } else {
     console.error('bad request', roomid, userid);
     res.sendStatus(400);
   }
+}
+
+function leaveRoomIfEntered(userid) {
+  return Room.findOne({ members: userid })
+    .then(room => leaveRoomImpl(room.id, userid))
+    .catch(err => null);
+}
+
+function enterRoomImpl(roomid, userid) {
+  return Room.findOne({ _id: roomid })
+    .then(room => {
+      if (room) {
+        room.members = [...room.members, userid];
+        room.save().then(result => {
+          console.log(`${userid} entered to room ${roomid}`);
+          return room;
+        });
+      } else {
+        console.error('room doesnt exist', roomid, userid);
+        return Promise.reject('room doesnt exist');
+      }
+    })
+    .catch(err => {
+      console.error('enter room db error', err, roomid, userid);
+      return Promise.reject(err);
+    });
+}
+
+function leaveRoomImpl(roomid, userid) {
+  return Room.findOne({ _id: roomid })
+    .then(room => {
+      if (room) {
+        room.members = _.without(room.members, userid);
+        room.save()
+          .then(room => {
+            console.log(`${userid} succeeded to leave room ${roomid}`);
+            return room;
+          })
+          .catch(err => {
+            console.error('leave room error', err, roomid, userid);
+            return err;
+          });
+      }
+    });
 }
