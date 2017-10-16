@@ -55,6 +55,10 @@ h2 {
 #gamerooms table .maximum {
   text-align: center;
 }
+#gamerooms table .submaximum {
+  color: #777;
+  font-size: 0.8em;
+}
 #gamerooms table .createdBy {
   text-align: center;
 }

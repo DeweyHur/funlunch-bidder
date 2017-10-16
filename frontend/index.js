@@ -50,26 +50,30 @@ function updateLobby() {
 function updateRooms() {
   ROOM.find()
     .then(rooms => {
-      $('#rooms').html(_.map(rooms, (room) => templateToHTML('room', _.defaults({ 
-        createdBy: room.createdBy.name,
-        idCreatedBy: room.createdBy.id,
-        members: _.map(room.members, user => user.name).join(',') 
-      }, room))));
-      if (!_.isEmpty(me)) {
-        _(rooms)
-          .sortBy(room => room.members.length)
-          .forEach(room => {
-            const operators = [];
-            if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
-            else operators.push('leave');
-            if (room.createdBy.id === me._id) operators.push('withdraw');
+      const htmlRooms = _(rooms)
+        .sortBy(room => -room.members.length)
+        .map(room => templateToHTML('room', _.defaults({
+            createdBy: room.createdBy.name,
+            idCreatedBy: room.createdBy.id,
+            count: room.members.length,
+            members: _.map(room.members, user => user.name).join(',') 
+          }, room)))
+        .value();      
+      $('#rooms').html(htmlRooms);
 
-            const htmlOps = operators.map(templateToHTML).join('\n');
-            $(`#rooms #${room.id} .operation`).html(htmlOps);
-            _.forEach(operators, key => {
-              $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
-            });
+      if (!_.isEmpty(me)) {
+        _.forEach(rooms, room => {
+          const operators = [];
+          if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
+          else operators.push('leave');
+          if (room.createdBy.id === me._id) operators.push('withdraw');
+
+          const htmlOps = operators.map(templateToHTML).join('\n');
+          $(`#rooms #${room.id} .operation`).html(htmlOps);
+          _.forEach(operators, key => {
+            $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
           });
+        });
       }
       return rooms;
     });
