@@ -25,7 +25,7 @@ passport.use(new GoogleStrategy(config.googleAuth, (p1, p2, p3, p4) => strategyH
 passport.use(new FacebookStrategy(_.defaults({
   profileFields: ['displayName', 'email']
 }, config.facebookAuth), (p1, p2, p3, p4) => strategyHandler(profile => ({
-  email: _.get(profile, 'emails[0].value'),
+  email: _.get(profile, 'emails[0].value') || profile.id + '@facebook.com',
   name: profile.displayName
 }), p1, p2, p3, p4)));
 
