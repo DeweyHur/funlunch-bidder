@@ -17,7 +17,7 @@ exports.getRooms = (req, res) => {
     const query = { '_id': { $in: ids } };
     User.find(query).lean()
       .then(docs => {
-        const users = _(ids).map((id, index) => [id, docs[index]]).fromPairs().value();
+        const users = _(docs).map(doc => [doc._id, doc]).fromPairs().value();
         const body = _.mapValues(rooms, room => _.defaults({
           id: room._id.toString(),
           createdBy: serializeUser(users[room.createdBy]),

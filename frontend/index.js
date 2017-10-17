@@ -1,5 +1,6 @@
 ﻿import _ from 'lodash';
 import $ from 'jquery';
+import util from 'util';
 import * as ROOM from './controllers/room.js';
 import * as USER from './controllers/user.js';
 
@@ -17,7 +18,6 @@ let roomOperations = {
 
 function templateToHTML(key, params) {
   return templates[key].map((item, index) => (index % 2) ? params[item] : item).join('');
-
 }
 
 function updateRoomOperation() {
@@ -50,15 +50,13 @@ function updateLobby() {
 function updateRooms() {
   ROOM.find()
     .then(rooms => {
-      const htmlRooms = _(rooms)
-        .sortBy(room => -room.members.length)
-        .map(room => templateToHTML('room', _.defaults({
-            createdBy: room.createdBy.name,
-            idCreatedBy: room.createdBy.id,
-            count: room.members.length,
-            members: _.map(room.members, user => user.name).join(',') 
-          }, room)))
-        .value();      
+      rooms = _.sortBy(rooms, room => -room.members.length * 100 -room.maximum);
+      const htmlRooms = _.map(rooms, room => templateToHTML('room', _.defaults({
+          createdBy: room.createdBy.name,
+          idCreatedBy: room.createdBy.id,
+          count: room.members.length,
+          members: _.map(room.members, user => user.name).join(',') 
+      }, room)));
       $('#rooms').html(htmlRooms);
 
       if (!_.isEmpty(me)) {
