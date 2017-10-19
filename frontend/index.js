@@ -15,6 +15,11 @@ let roomOperations = {
   enter: (room) => ROOM.enter(room).then(updateRooms),
   leave: (room) => ROOM.leave(room).then(updateRooms),
 }
+let currentRooms = [];
+let roomSorter = {
+  createdBy: room => room.createdBy.name,
+  members: room => room.members.length  
+}
 
 function templateToHTML(key, params) {
   return templates[key].map((item, index) => (index % 2) ? params[item] : item).join('');
@@ -45,36 +50,47 @@ function updateLobby() {
     })
     .catch(err => $('#operation').load('templates/login.htm'));
   updateRooms();
+  _.forEach($(`#gamerooms th button`), item => {
+    item.onclick = e => {
+      if (item.dataset.sortOrder === 'asc') {
+        item.dataset.sortOrder = 'desc';
+      } else if (item.dataset.sortOrder === 'desc') {
+        item.dataset.sortOrder = 'asc';
+      } else {
+        item.dataset.sortOrder = item.dataset.defaultSortOrder;
+      }
+      return drawRooms(_.orderBy(currentRooms, roomSorter[item.dataset.key] || item.dataset.key, item.dataset.sortOrder));
+    };
+  });
 }
 
 function updateRooms() {
-  ROOM.find()
-    .then(rooms => {
-      rooms = _.sortBy(rooms, room => -room.members.length * 100 -room.maximum);
-      const htmlRooms = _.map(rooms, room => templateToHTML('room', _.defaults({
-          createdBy: room.createdBy.name,
-          idCreatedBy: room.createdBy.id,
-          count: room.members.length,
-          members: _.map(room.members, user => user.name).join(',') 
-      }, room)));
-      $('#rooms').html(htmlRooms);
+  ROOM.find().then(rooms => drawRooms(currentRooms = rooms));
+}
 
-      if (!_.isEmpty(me)) {
-        _.forEach(rooms, room => {
-          const operators = [];
-          if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
-          else operators.push('leave');
-          if (room.createdBy.id === me._id) operators.push('withdraw');
+function drawRooms(rooms) {
+  const htmlRooms = _.map(rooms, room => templateToHTML('room', _.defaults({
+      createdBy: room.createdBy.name,
+      idCreatedBy: room.createdBy.id,
+      count: room.members.length,
+      members: _.map(room.members, user => user.name).join(',') 
+  }, room)));
+  $('#rooms').html(htmlRooms);
 
-          const htmlOps = operators.map(templateToHTML).join('\n');
-          $(`#rooms #${room.id} .operation`).html(htmlOps);
-          _.forEach(operators, key => {
-            $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
-          });
-        });
-      }
-      return rooms;
+  if (!_.isEmpty(me)) {
+    _.forEach(rooms, room => {
+      const operators = [];
+      if (_.find(room.members, user => me._id === user.id) === undefined) operators.push('enter');
+      else operators.push('leave');
+      if (room.createdBy.id === me._id) operators.push('withdraw');
+
+      const htmlOps = operators.map(templateToHTML).join('\n');
+      $(`#rooms #${room.id} .operation`).html(htmlOps);
+      _.forEach(operators, key => {
+        $(`#rooms #${room.id} .operation .${key}`).on('click', e => roomOperations[key](room));
+      });
     });
+  }
 }
 
 $('#dataTemplate').load('templates/data.htm', () => {
