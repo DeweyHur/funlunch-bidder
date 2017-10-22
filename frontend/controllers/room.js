@@ -1,38 +1,26 @@
 import _ from 'lodash';
 import { REST } from './rest.js';
 
-export function withdraw(room) {
-  return REST('DELETE', `/room/${room.id}`)
-    .then(() => {
-      console.log(`deletion ${room.id} success. update rooms.`);
-      return null;
-    })
-    .catch(err => console.dir(err));
+export async function withdraw(room) {
+  await REST('DELETE', `/room/${room.id}`);
+  console.log(`deletion ${room.id} success. update rooms.`);
 }
 
-export function enter(room) {
-  return REST('PUT', `/room/${room.id}`)
-    .then(() => {
-      console.log(`succeed to enter into ${room.name}.`);
-      return null;
-    });
+export async function enter(room) {
+  await REST('PUT', `/room/${room.id}`);
+  console.log(`succeed to enter into ${room.name}.`);
 }
 
-export function leave(room) {
-  return REST('DELETE', `/room/${room.id}/me`)
-    .then(() => {
-      console.log(`succeed to leave from ${room.name}`);
-      return null;
-    });
+export async function leave(room) {
+  await REST('DELETE', `/room/${room.id}/me`);
+  console.log(`succeed to leave from ${room.name}`);
 }
 
-export function host(params) {
-  return REST('PUT', '/room', params)
-    .then(() => {
-      console.log('succeed to host a room', params);
-    })
+export async function host(params) {
+  await REST('PUT', '/room', params);
+  console.log('succeed to host a room', params);
 }
 
-export function find() {
-  return REST('GET', '/room');
+export async function find() {
+  return await REST('GET', '/room');
 }

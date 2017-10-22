@@ -8,6 +8,6 @@ function generateParams(uri) {
   }, bearer != null ? { auth: { bearer } } : {});
 }
 
-export function REST(method, uri, body) {
+export async function REST(method, uri, body) {
   return request(_.assign(generateParams(uri), { method, body }));
 }

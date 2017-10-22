@@ -1,6 +1,7 @@
+import _ from 'lodash';
 import React from 'react';
+import Rooms from './rooms.jsx';
 import UserInfo from './userinfo.jsx';
-import * as USER from '../controllers/user.js';
 
 function Today(props) { 
   return (
@@ -9,10 +10,6 @@ function Today(props) {
 }
 
 export default class Lobby extends React.Component {
-  componentDidMount() {
-    USER.findMe().then(me => this.setState(_.defaults({ me }, this.state)));
-  }
-
   render() {
     return (
       <section id="lobby">
@@ -23,8 +20,11 @@ export default class Lobby extends React.Component {
         <img src="https://ca.slack-edge.com/T039ZEK3W-U1ATQ5D8R-ea016200ba21-72" />
           <img src="https://ca.slack-edge.com/T039ZEK3W-U09E9P4FR-6ccc18feacfa-72" />
         </div>
-        <UserInfo me={this.props.me} />
-        <Today />
+        <div>
+          <UserInfo />
+          <Today />
+        </div>
+        <Rooms />
       </section>
     );
   }
