@@ -4,7 +4,9 @@ import request from 'request-promise';
 
 export default class Proxy extends EventEmitter {
   assign(updates) {
+    console.log('assigning', updates, this.cache);
     this.cache = _.assign({}, updates, this.cache);
+    console.log('assigned', this.cache);
     this.emit('assign', updates, this.cache);
   }
 

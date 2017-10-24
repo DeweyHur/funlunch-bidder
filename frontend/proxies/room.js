@@ -12,14 +12,19 @@ class RoomProxy extends Proxy {
       .remove(item => Object(item) !== item)
       .transform((result, id) => result[id] = undefined, {})
       .value();
-    const updates = _.keyBy(res, '_id');
+    const updates = _.keyBy(res, 'id');
+    
     this.assign({
       data: _.assign({}, this.cache.data, updates, removes)
     });
   }
 
   async fetch() {
-    return await this.request('GET', '/room');
+    const res = await this.request('GET', '/room');
+    this.assign({
+      data: _.keyBy(res, 'id'),
+      order: _.map(res, 'id')
+    });
   }
 
   async host(params) {

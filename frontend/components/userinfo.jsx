@@ -4,22 +4,23 @@ import userProxy from '../proxies/user.js';
 
 export default class UserInfo extends React.Component {
   componentWillMount() {
-    console.log(userProxy, this);
-    this._onUpdate = proxy => this.setState(proxy);
-    this.onUpdate = this._onUpdate.bind(this);
-    userProxy.on('update', this.onUpdate);
+    this.setState(userProxy.cache);
+
+    this._onAssign = proxy => this.setState(proxy);
+    this.onAssign = this._onAssign.bind(this);
+    userProxy.on('assign', this.onAssign);
     userProxy.fetchMe();
   }
 
   componentWillUnmount() {
-    if (this.onUpdate) {
-      userProxy.removeListener('update', this.onUpdate);
-      delete this.onUpdate;
+    if (this.onAssign) {
+      userProxy.removeListener('assign', this.onAssign);
+      delete this.onAssign;
     }
   }
 
   render() {
-    if (_.isEmpty(this.state)) {
+    if (_.isEmpty(this.state.myid)) {
       return (
         <div id="login">
           <a href="/auth/google"><img width="191px" src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png" alt="Sign in with Google" /></a>

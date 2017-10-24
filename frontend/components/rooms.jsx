@@ -51,22 +51,27 @@ class Room extends React.Component {
 
 export default class Rooms extends React.Component {
   componentWillMount() {
-    this._onUpdate = proxy => this.setState(proxy);
-    this.onUpdate = this._onUpdate.bind(this);
-    roomProxy.on('update', this.onUpdate);
+    this.setState(roomProxy.cache);
+
+    this._onAssign = data => {
+      console.log('updating room data', data);
+      this.setState(data);
+    };
+    this.onAssign = this._onAssign.bind(this);
+    roomProxy.on('assign', this.onAssign);
     roomProxy.fetch();
   }
 
   componentWillUnmount() {
-    if (this.onUpdate) {
-      UserProxy.removeListener('update', this.onUpdate);
-      delete this.onUpdate;
+    if (this.onAssign) {
+      UserProxy.removeListener('update', this.onAssign);
+      delete this.onAssign;
     }
   }
   
   render() {
-    const { data, order } = this.props;
-    console.log('rendering Rooms', this.props);
+    console.log('rendering Rooms', this.state);
+    const { data, order } = this.state;
     if (data && order) {
       return (
         <div id="gamerooms">
