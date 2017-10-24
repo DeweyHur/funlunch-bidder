@@ -1,8 +1,7 @@
-import _ from 'lodash';
 import React from 'react';
 import Rooms from './rooms.jsx';
 import UserInfo from './userinfo.jsx';
-import * as USER from '../controllers/user.js';
+import _ from 'lodash';
 
 function Today(props) { 
   return (

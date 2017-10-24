@@ -1,20 +1,24 @@
-import _ from 'lodash';
 import React from 'react';
-import * as USER from '../controllers/user.js';
+import _ from 'lodash';
+import userProxy from '../proxies/user.js';
 
 export default class UserInfo extends React.Component {
-  async componentWillMount() {
-    try {
-      const me = await USER.findMe();
-      this.setState(me);
-    } catch (e) {
-      this.setState({});
+  componentWillMount() {
+    this._onUpdate = proxy => this.setState(proxy);
+    this.onUpdate = this._onUpdate.bind(this);
+    userProxy.on('update', this.onUpdate);
+    userProxy.fetchMe();
+  }
+
+  componentWillUnmount() {
+    if (this.onUpdate) {
+      userProxy.removeListener('update', this.onUpdate);
+      delete this.onUpdate;
     }
   }
 
   render() {
-    const me = this.state;
-    if (_.isEmpty(me)) {
+    if (_.isEmpty(this.state)) {
       return (
         <div id="login">
           <a href="/auth/google"><img width="191px" src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png" alt="Sign in with Google" /></a>
@@ -22,6 +26,8 @@ export default class UserInfo extends React.Component {
         </div>
       );
     } else {
+      const { myid, data } = this.state;
+      const me = data[myid];
       return (
         <div id="userinfo">
           Logged in as {me.name}

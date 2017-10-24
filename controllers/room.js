@@ -71,11 +71,12 @@ exports.deleteRoom = (req, res) => {
     Room.findOne({ _id: roomid, createdBy: userid }).remove()
       .then(result => {
         console.log(`delete room ${roomid} success`);
-        return res.sendStatus(200);
+        res.sendStatus(200);
+        return [ _id ];
       })
       .catch(err => {
         console.error('delete room db error', err, roomid);
-        return res.sendStatus(401);
+        res.sendStatus(401);
       });
   } else {
     console.error('bad request', roomid, userid);
@@ -85,11 +86,18 @@ exports.deleteRoom = (req, res) => {
 
 exports.enterRoom = (req, res) => {
   const roomid = _.get(req, 'params.roomid');
-  const userid = _.get(req, 'user._id')
+  const userid = _.get(req, 'user._id');
+  const body = [];
   if (roomid && userid) {
     leaveRoomIfEntered(userid)
-      .then(() => enterRoomImpl(roomid, userid)) 
-      .then(() => res.sendStatus(200))
+      .then(leftRoom => {
+        if (leftRoom) body.push(leftRoom);
+        enterRoomImpl(roomid, userid);
+      }) 
+      .then(enteredRoom => {
+        body.push(enteredRoom);
+        res.status(200).send(body);
+      })
       .catch(err => res.sendStatus(500));
   } else {
     console.error('bad request', roomid, userid);
@@ -102,7 +110,10 @@ exports.leaveRoom = (req, res) => {
   const userid = _.get(req, 'user._id')
   if (roomid && userid) {
     leaveRoomImpl(roomid, userid)
-      .then(room => res.sendStatus(200))
+      .then(room => {
+        res.status(200).send([room]);
+        return room;
+      })
       .catch(err => res.sendStatus(500));
   } else {
     console.error('bad request', roomid, userid);
