@@ -17,7 +17,7 @@ export default class Proxy extends EventEmitter {
   }
 
   async request(method, uri, body) {
-    return request(_.assign(generateParams(uri), { method, body }));
+    return request(_.assign(this.generateParams(uri), { method, body }));
   }
 }
 

@@ -4,6 +4,7 @@ import userProxy from '../proxies/user.js';
 
 export default class UserInfo extends React.Component {
   componentWillMount() {
+    console.log(userProxy, this);
     this._onUpdate = proxy => this.setState(proxy);
     this.onUpdate = this._onUpdate.bind(this);
     userProxy.on('update', this.onUpdate);

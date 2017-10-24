@@ -19,17 +19,17 @@ class RoomProxy extends Proxy {
   }
 
   async fetch() {
-    return await request('GET', '/room');
+    return await this.request('GET', '/room');
   }
 
   async host(params) {
-    const res = await request('PUT', '/room', params);
+    const res = await this.request('PUT', '/room', params);
     console.log(`host ${roomid} success.`);
 
   }
 
   async withdraw(roomid) {
-    await request('DELETE', `/room/${roomid}`);
+    await this.request('DELETE', `/room/${roomid}`);
     console.log(`deletion ${roomid} success.`);
 
     this.assign({
@@ -39,14 +39,14 @@ class RoomProxy extends Proxy {
   }
 
   async enter(roomid) {
-    const res = await request('PUT', `/room/${roomid}`);
+    const res = await this.request('PUT', `/room/${roomid}`);
     console.log(`succeed to enter into ${roomid}`);
 
     handleResponse(res);
   }
 
   async leave(roomid) {
-    const res = await request('DELETE', `/room/${roomid}/me`);
+    const res = await this.request('DELETE', `/room/${roomid}/me`);
     console.log(`succeed to leave from ${roomid}`);
 
     handleResponse(res);

@@ -9,7 +9,7 @@ class UserProxy extends Proxy {
 
   async fetchMe() {
     try {
-      const me = await request('GET', '/user/me');
+      const me = await this.request('GET', '/user/me');
       localStorage.setItem('funlunch-bearer', JSON.stringify(me.accessToken));
       this.assign({
         myid: me._id,
@@ -17,7 +17,7 @@ class UserProxy extends Proxy {
       });
       return me;
     } catch (e) {
-      this.setCache({
+      this.assign({
         myid: undefined
       });
       return null;
