@@ -6,7 +6,10 @@ export default class UserInfo extends React.Component {
   componentWillMount() {
     this.setState(userProxy.cache);
 
-    this._onAssign = proxy => this.setState(proxy);
+    this._onAssign = proxy => {
+      console.log('user assign', proxy);
+      this.setState(proxy);
+    }
     this.onAssign = this._onAssign.bind(this);
     userProxy.on('assign', this.onAssign);
     userProxy.fetchMe();

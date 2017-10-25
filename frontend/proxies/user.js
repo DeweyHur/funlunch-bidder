@@ -13,7 +13,7 @@ class UserProxy extends Proxy {
       localStorage.setItem('funlunch-bearer', JSON.stringify(me.accessToken));
       this.assign({
         myid: me._id,
-        data: _.assign({}, cache.data, { [me._id]: me })
+        data: _.assign({}, this.cache.data, { [me._id]: me })
       });
       return me;
     } catch (e) {
