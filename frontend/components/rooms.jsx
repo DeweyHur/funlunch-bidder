@@ -33,16 +33,32 @@ class Room extends React.Component {
   render() {
     const { room } = this.props;
     if (!_.isEmpty(room)) {
-      const { name, maximum, createdBy, members } = room;
-      return (
-        <tr>
-          <td className="name">{name}</td>
-          <td className="maximum">{members.length}<span className="submaximum">/{maximum}</span></td>
-          <td className="createdBy">{createdBy.name}</td>
-          <td className="members">{_.map(members, 'name').join(',')}</td>
-          <RoomOperators room={room} />
-        </tr>
-      );
+      const { 
+        name, maximum, createdBy, members, description, onFocus,
+        image = "http://www.51allout.co.uk/wp-content/uploads/2012/02/Image-not-found.gif"
+       } = room;
+      if (this.state && this.state.selected) {
+        return (
+          <div className="room" tabIndex="-1">
+            <div className="image"><img src={image} /></div>
+            <div className="name">{name}</div>
+            <div className="count">{members.length}<span className="maximum">/{maximum}</span></div>
+            <div className="description">{description}</div>
+          </div>
+        );
+
+      } else {
+        return (
+          <div className="room" tabIndex="-1" onFocus={() => {
+            this.props.onFocus(this);
+            this.setState(_.defaults({ selected: true }, this.state));
+          }}>
+            <div className="image"><img src={image} /></div>
+            <div className="name">{name}</div>
+            <div className="count">{members.length}<span className="maximum">/{maximum}</span></div>
+          </div>
+        );
+      }
     } else {
       return (<tr><td colSpan="5" className="loader" /></tr>);
     }
@@ -68,29 +84,24 @@ export default class Rooms extends React.Component {
       delete this.onAssign;
     }
   }
-  
+
+  handleFocus(room) {
+    if (this.currentFocus) {
+      this.currentFocus.setState({ ...this.state, selected: undefined });
+      delete this.currentFocus;
+    }
+    this.currentFocus = room;
+  }
+
   render() {
     console.log('rendering Rooms', this.state);
     const { data, order } = this.state;
     if (data && order) {
       return (
         <div id="gamerooms">
-          <table>
-            <thead>
-              <tr>
-                <th><button>Game</button></th>
-                <th><button>Count</button></th>
-                <th><button>Owned By</button></th>
-                <th><button>Players</button></th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.map(id => (
-                <Room key={id} room={data[id]} />
-              ))}
-            </tbody>
-          </table>
+          {order.map(id => (
+            <Room key={id} room={data[id]} onFocus={this.handleFocus.bind(this)} />
+          ))}
         </div>
       );
     } else {

@@ -43,33 +43,45 @@ h2 {
   margin-top: 20px;
   width: 100%;
 }
-#gamerooms table th {
-  background-color: #4CAF50;
+#gamerooms .room {
+  display: inline-block;
+  width: 150px;
+  padding: 5px;
+  transition: 0.3s;
 }
-#gamerooms table td {
-  border: 1px solid #ddd;
-}
-#gamerooms table .name {
+#gamerooms .room .image {
   text-align: center;
 }
-#gamerooms table .maximum {
+#gamerooms .room .image img {
+  width: 100px;
+  height: 100px;
+}
+#gamerooms .room .name {
   text-align: center;
 }
-#gamerooms table .submaximum {
+#gamerooms .room .count {
+  text-align: center;
+}
+#gamerooms .room .count .maximum {
   color: #777;
   font-size: 0.8em;
 }
-#gamerooms table .createdBy {
-  text-align: center;
+#gamerooms .room:hover {
+  background-color: #dde;
 }
-#gamerooms table .members {
-  font-size: 0.7em;
+#gamerooms .room:focus {
+  outline: 0px;
+  background-color: #ded;
 }
-#gamerooms table .description {
-  background-color: #f2f2f2;
-  font-size: 0.8em;
-  color: #777;
+/* #gamerooms .room:focus .image {
+  text-align: left;
 }
+#gamerooms .room:focus .name {
+  text-align: left;
+}
+#gamerooms .room:focus .count {
+  text-align: left;
+} */
 
 #creation {
   border: 1px solid #ddd;
