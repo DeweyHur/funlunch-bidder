@@ -1,61 +1,45 @@
 import React from 'react';
 import _ from 'lodash';
 import roomProxy from '../proxies/room';
-
-class RoomOperators extends React.Component {
-  render() {
-    const actions = [];
-    const { myid } = this.props;
-    if (!_.isEmpty(myid)) {
-      const { _id, name, maximum, createdBy, members } = this.props.room;
-      if (_.some(members, { id: myid })) {
-        actions.push((
-          <button key="leave" className="leave">Leave</button>
-        ));
-      } else {
-        actions.push((
-          <button key="enter" className="enter">Enter</button>
-        ));
-      }
-      if (createdBy.id === myid) {
-        actions.push((
-          <button key="withdraw" className="withdraw">Withdraw!!</button>
-        ));
-      }
-    }
-    return (
-      <td className="operation">{actions}</td>
-    );
-  }
-}
+import userProxy from '../proxies/user';
 
 class Room extends React.Component {
   render() {
     const { room } = this.props;
     if (!_.isEmpty(room)) {
       const { 
-        name, maximum, createdBy, members, description, onFocus,
+        id, name, maximum, createdBy, members, description, onFocus,
         image = "http://www.51allout.co.uk/wp-content/uploads/2012/02/Image-not-found.gif"
        } = room;
+      const myid = _.get(userProxy, 'cache.myid');
+      let children = [
+        (<div className="image"><img src={image} /></div>),
+        (<div className="name">{name}</div>),
+        (<div className="count">{members.length}<span className="maximum">/{maximum}</span></div>)
+      ];
       if (this.state && this.state.selected) {
+        if (myid && myid === createdBy.id) {
+          children = [(
+            <a href="#" className="close" onClick={() => {
+              if (confirm(`Do you want to cancel to host ${name}(${maximum}P)?`)) 
+                roomProxy.withdraw(id);
+            }} />), ...children
+          ];
+        }
         return (
-          <div className="room" tabIndex="-1">
-            <div className="image"><img src={image} /></div>
-            <div className="name">{name}</div>
-            <div className="count">{members.length}<span className="maximum">/{maximum}</span></div>
+          <div className="room selected" tabIndex="-1">
+            { children }
             <div className="description">{description}</div>
           </div>
         );
 
       } else {
         return (
-          <div className="room" tabIndex="-1" onFocus={() => {
-            this.props.onFocus(this);
+          <div className="room" tabIndex="-1" onClick={() => {
+            this.props.onClick(this);
             this.setState(_.defaults({ selected: true }, this.state));
           }}>
-            <div className="image"><img src={image} /></div>
-            <div className="name">{name}</div>
-            <div className="count">{members.length}<span className="maximum">/{maximum}</span></div>
+            { children }
           </div>
         );
       }
@@ -85,7 +69,7 @@ export default class Rooms extends React.Component {
     }
   }
 
-  handleFocus(room) {
+  handleChildClick(room) {
     if (this.currentFocus) {
       this.currentFocus.setState({ ...this.state, selected: undefined });
       delete this.currentFocus;
@@ -100,7 +84,7 @@ export default class Rooms extends React.Component {
       return (
         <div id="gamerooms">
           {order.map(id => (
-            <Room key={id} room={data[id]} onFocus={this.handleFocus.bind(this)} />
+            <Room key={id} room={data[id]} onClick={this.handleChildClick.bind(this)} />
           ))}
         </div>
       );
