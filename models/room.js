@@ -5,6 +5,7 @@ let mongoose = require('mongoose');
 let RoomSchema = new mongoose.Schema({
   _id: { type: String, index: true },
   name: String,
+  image: String,
   description: String,
   maximum: Number,
   createdBy: { type: String, ref: 'User' },

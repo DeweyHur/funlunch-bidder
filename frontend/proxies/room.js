@@ -28,7 +28,7 @@ class RoomProxy extends Proxy {
 
   async host(params) {
     const res = await this.request('PUT', '/room', params);
-    console.log(`host ${roomid} success.`);
+    console.log(`host ${_.map(params, (value, key) => `${key}:${value}`).join(',')} success.`);
 
     this.handleResponse(res);
   }

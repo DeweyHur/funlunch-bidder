@@ -71,8 +71,8 @@ exports.deleteRoom = (req, res) => {
     Room.findOne({ _id: roomid, createdBy: userid }).remove()
       .then(result => {
         console.log(`delete room ${roomid} success`);
-        res.status(200).send([ _id ]);
-        return [ _id ];
+        res.status(200).send([ roomid ]);
+        return [ roomid ];
       })
       .catch(err => {
         console.error('delete room db error', err, roomid);

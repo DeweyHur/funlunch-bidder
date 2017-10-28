@@ -3,13 +3,68 @@ import _ from 'lodash';
 import roomProxy from '../proxies/room';
 import userProxy from '../proxies/user';
 
+const ImageNotFound = "http://www.51allout.co.uk/wp-content/uploads/2012/02/Image-not-found.gif";
+const HostNewGame = "https://www.shareicon.net/data/256x256/2016/01/03/697342_plus_512x512.png";
+
+class RoomCreation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleSubmit(event) {
+    const { name, maximum, description } = this.state;
+    if (name && maximum) {
+      if (confirm(`Do you want to host "${name}" for ${maximum} players?`)) {
+        roomProxy.host({ name, maximum, description, selected: undefined });
+        this.setState({ ...this.state, name: '', maximum: '', description: '' });
+      }
+    }
+  }
+
+  handleChange(event) {
+    this.setState({ ...this.state, [event.target.name]: event.target.value });
+  }
+
+  render() {
+    if (this.state.selected) {
+      return (
+        <div className="room selected" tabIndex="-1">
+          <form onSubmit={this.handleSubmit} >
+            <div className="image" onClick={() => {
+              this.setState({ ...this.state, image: prompt("Input image url") });
+            }}><img src={this.state.image || HostNewGame} onError={() => this.src = ImageNotFound} /></div>
+            <div className="name"><input name="name" type="text" placeholder="Game Title" value={this.state.name} onChange={this.handleChange} /></div>
+            <div className="count"><input name="maximum" type="number" placeholder="# Players" value={this.state.maximum} onChange={this.handleChange} /></div>
+            <div className="description"><input name="description" type="text" placeholder="Description" value={this.state.description} onChange={this.handleChange} /></div>
+            <input type="submit" />
+          </form>
+        </div>
+      );
+    } else {
+      return (
+        <div className="room" tabIndex="-1" onClick={() => {
+          this.props.onClick(this);
+          this.setState({ ...this.state, selected: true });
+        }}>
+          <div className="image"><img src={HostNewGame} /></div>
+          <div className="name">Host your own game</div>
+          <div className="count">Press Here</div>
+        </div>
+      );
+    }
+  }
+}
+
 class Room extends React.Component {
   render() {
     const { room } = this.props;
     if (!_.isEmpty(room)) {
-      const { 
+      const {
         id, name, maximum, createdBy, members, description, onFocus,
-        image = "http://www.51allout.co.uk/wp-content/uploads/2012/02/Image-not-found.gif"
+        image = ImageNotFound
        } = room;
       const myid = _.get(userProxy, 'cache.myid');
       let children = [
@@ -21,14 +76,14 @@ class Room extends React.Component {
         if (myid && myid === createdBy.id) {
           children = [(
             <a href="#" className="close" onClick={() => {
-              if (confirm(`Do you want to cancel to host ${name}(${maximum}P)?`)) 
+              if (confirm(`Do you want to cancel to host ${name}(${maximum}P)?`))
                 roomProxy.withdraw(id);
             }} />), ...children
           ];
         }
         return (
           <div className="room selected" tabIndex="-1">
-            { children }
+            {children}
             <div className="description">{description}</div>
           </div>
         );
@@ -37,19 +92,24 @@ class Room extends React.Component {
         return (
           <div className="room" tabIndex="-1" onClick={() => {
             this.props.onClick(this);
-            this.setState(_.defaults({ selected: true }, this.state));
+            this.setState({ ...this.state, selected: true });
           }}>
-            { children }
+            {children}
           </div>
         );
       }
     } else {
-      return (<tr><td colSpan="5" className="loader" /></tr>);
+      return (<div colSpan="5" className="loader"></div>);
     }
   }
 }
 
 export default class Rooms extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChildClick = this.handleChildClick.bind(this);
+  }
+
   componentWillMount() {
     this.setState(roomProxy.cache);
 
@@ -64,7 +124,7 @@ export default class Rooms extends React.Component {
 
   componentWillUnmount() {
     if (this.onAssign) {
-      UserProxy.removeListener('update', this.onAssign);
+      roomProxy.removeListener('update', this.onAssign);
       delete this.onAssign;
     }
   }
@@ -80,12 +140,22 @@ export default class Rooms extends React.Component {
   render() {
     console.log('rendering Rooms', this.state);
     const { data, order } = this.state;
+    const myid = _.get(userProxy, 'cache.myid');
+    let children = [
+      order.map(id => (
+        <Room key={id} room={data[id]} onClick={this.handleChildClick} />
+      ))
+    ];
+    if (myid) {
+      children = [ 
+        (<RoomCreation key="creation" onClick={this.handleChildClick} />),
+        ...children
+      ];
+    }
     if (data && order) {
       return (
-        <div id="gamerooms">
-          {order.map(id => (
-            <Room key={id} room={data[id]} onClick={this.handleChildClick.bind(this)} />
-          ))}
+        <div id="gamerooms">        
+          {children}
         </div>
       );
     } else {

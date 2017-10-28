@@ -45,6 +45,7 @@ h2 {
 }
 #gamerooms .room {
   display: inline-block;
+  vertical-align: text-bottom;
   width: 150px;
   padding: 5px;
   border-radius: 5px;
